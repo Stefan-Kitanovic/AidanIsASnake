@@ -4,6 +4,8 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Media;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -17,6 +19,11 @@ namespace AidanIsASnake
         private int maxXpos;
         private int maxYpos;
 
+        [DllImport("winmm.dll")]
+        public static extern int waveOutGetVolume(IntPtr hwo, out uint dwVolume);
+
+        [DllImport("winmm.dll")]
+        public static extern int waveOutSetVolume(IntPtr hwo, uint dwVolume);
 
         public Form1()
         {
@@ -25,9 +32,16 @@ namespace AidanIsASnake
             new Settings(); 
             new Data();
 
+
+            //Volume slider
+            uint currentVolume = 0;                                             //Set the volume to 0 by default
+            waveOutGetVolume(IntPtr.Zero, out currentVolume);                   //Assigns the volume
+            ushort calculatedVolume = (ushort)(currentVolume & 0x0000ffff);     //Calculates the volume
+            volumeSlider.Value = calculatedVolume / (ushort.MaxValue / 100);      //Volume on a scale of 1 to 100
+
             //Game boundaries
-            maxXpos = gameBackground.Size.Width / Settings.Width;
-            maxYpos = gameBackground.Size.Height / Settings.Height;
+            maxXpos = (gameBackground.Size.Width - Settings.Width/2) / Settings.Width;      //Has to be set this way
+            maxYpos = (gameBackground.Size.Height - Settings.Height/2) / Settings.Height;   //to prevent a bug that allows snake to go beyond bottom border
 
             difficultySlider.Enabled = false;
             difficultySlider.Value = 1;
@@ -46,6 +60,7 @@ namespace AidanIsASnake
             this.ActiveControl = null;  //Makes it so the components don't take focus thus disabling key reading
             difficultyLabel.Text = "Diffculty: " + Settings.difficulty.ToString(); //Displays the current difficulty
             gameScoreNumLabel.Text = Data.Score.ToString(); //Shows the score on the screen
+            volumeLabel.Text = "Volume: " + volumeSlider.Value.ToString();
 
             //Game over screen
             if (Data.GameState == GameStates.Spawning)
@@ -152,14 +167,14 @@ namespace AidanIsASnake
                         Snake[i].X > maxXpos ||
                         Snake[i].Y > maxYpos)
                     {
-                        Data.GameState = GameStates.Dead; //ded †
+                        die(); //ded †
                     }
 
                     //Collision detection for the body
                     for (int j = 1; j < Snake.Count; j++)
                     {
                         if (Snake[i].X == Snake[j].X && Snake[i].Y == Snake[j].Y)
-                            Data.GameState = GameStates.Dead; //ded †
+                            die(); //ded †
                     }
                      
                     if (Snake[0].X == food.X && Snake[0].Y == food.Y)
@@ -196,6 +211,17 @@ namespace AidanIsASnake
             Snake.Add(newBodyPart); //Adds the created block to the list
             Data.Score += Settings.Points; //Increases the score
             gameScoreNumLabel.Text = Data.Score.ToString(); //Display the score on the screen
+
+            try
+            {
+                //SoundPlayer eatSound = new SoundPlayer(AidanIsASnake.Properties.Resources.eat);
+                //eatSound.Play();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error loading eating sound");
+            }
+
             generateFood(); //Makes a new food block since the previous one was eaten
         }
 
@@ -206,6 +232,16 @@ namespace AidanIsASnake
             Snake.Clear(); //Clears the list of snake parts
             Block head = new Block { X = 10, Y = 5 }; //Spawns the head of the snake
             Snake.Add(head); //Adds the head to the list
+
+            try
+            {
+                SoundPlayer gameSong = new SoundPlayer(AidanIsASnake.Properties.Resources.gas_gas_gas);
+                gameSong.PlayLooping();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error loading game song");
+            }
 
             generateFood(); //Generates the starting food
         }
@@ -219,6 +255,22 @@ namespace AidanIsASnake
         private void pause()
         {
             Data.GameState = GameStates.Paused;
+        }
+
+        private void die()
+        {
+            Data.GameState = GameStates.Dead;
+
+            try
+            {               
+                SoundPlayer deathSound = new SoundPlayer(AidanIsASnake.Properties.Resources.you_died);
+                deathSound.Play();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error loading death sound");
+            }
+            
         }
 
         private void keyDown(object sender, KeyEventArgs e)
@@ -260,27 +312,6 @@ namespace AidanIsASnake
             }      
         }
 
-        private void difficultySlider_Scroll(object sender, EventArgs e)
-        {
-            switch (difficultySlider.Value)
-            {
-                case 0:
-                    Settings.difficulty = Difficulties.Pepega;
-                    break;
-                case 1:
-                    Settings.difficulty = Difficulties.Normal;
-                    break;
-                case 2:
-                    Settings.difficulty = Difficulties.Hard;
-                    break;
-                case 3:
-                    Settings.difficulty = Difficulties.DarkSouls;
-                    break;
-            }
-
-            changeDifficulty();
-        }
-
         private void changeDifficulty()
         {
             switch (Settings.difficulty)
@@ -307,7 +338,39 @@ namespace AidanIsASnake
             }
 
             gameTimer.Interval = 1000 / Settings.Speed; //Interval depends on the speed set in the settings
-        }   
+        }
 
+        private void difficultySlider_Scroll(object sender, EventArgs e)
+        {
+            switch (difficultySlider.Value)
+            {
+                case 0:
+                    Settings.difficulty = Difficulties.Pepega;
+                    break;
+                case 1:
+                    Settings.difficulty = Difficulties.Normal;
+                    break;
+                case 2:
+                    Settings.difficulty = Difficulties.Hard;
+                    break;
+                case 3:
+                    Settings.difficulty = Difficulties.DarkSouls;
+                    break;
+            }
+
+            changeDifficulty();
+        }
+
+        private void volumeSlider_Scroll(object sender, EventArgs e)
+        {
+            int newVolume = ((ushort.MaxValue / 100) * volumeSlider.Value);                             //Calculates the selected volume
+            uint newVolumeAllChannels = (((uint)newVolume & 0x0000ffff) | ((uint)newVolume << 16));     //Sets the volume for both channels
+            waveOutSetVolume(IntPtr.Zero, newVolumeAllChannels);                                        //Sets the final volume
+        }
+
+        private void playSound(string audioPath)
+        {
+            
+        }
     }
 }

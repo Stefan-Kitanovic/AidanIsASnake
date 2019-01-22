@@ -39,8 +39,11 @@
             this.gameSpawningText = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.gamePausedLabel = new System.Windows.Forms.Label();
+            this.volumeSlider = new System.Windows.Forms.TrackBar();
+            this.volumeLabel = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.gameBackground)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.difficultySlider)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.volumeSlider)).BeginInit();
             this.SuspendLayout();
             // 
             // gameBackground
@@ -140,11 +143,34 @@
             this.gamePausedLabel.TabIndex = 7;
             this.gamePausedLabel.Text = "Paused";
             // 
+            // volumeSlider
+            // 
+            this.volumeSlider.Location = new System.Drawing.Point(591, 315);
+            this.volumeSlider.Maximum = 100;
+            this.volumeSlider.Name = "volumeSlider";
+            this.volumeSlider.Size = new System.Drawing.Size(262, 45);
+            this.volumeSlider.TabIndex = 8;
+            this.volumeSlider.TabStop = false;
+            this.volumeSlider.TickStyle = System.Windows.Forms.TickStyle.None;
+            this.volumeSlider.Scroll += new System.EventHandler(this.volumeSlider_Scroll);
+            // 
+            // volumeLabel
+            // 
+            this.volumeLabel.AutoSize = true;
+            this.volumeLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.volumeLabel.Location = new System.Drawing.Point(588, 363);
+            this.volumeLabel.Name = "volumeLabel";
+            this.volumeLabel.Size = new System.Drawing.Size(107, 26);
+            this.volumeLabel.TabIndex = 9;
+            this.volumeLabel.Text = "Volume: ";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(909, 631);
+            this.Controls.Add(this.volumeLabel);
+            this.Controls.Add(this.volumeSlider);
             this.Controls.Add(this.gamePausedLabel);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.gameSpawningText);
@@ -160,6 +186,7 @@
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.keyUp);
             ((System.ComponentModel.ISupportInitialize)(this.gameBackground)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.difficultySlider)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.volumeSlider)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -177,6 +204,8 @@
         private System.Windows.Forms.Label gameSpawningText;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label gamePausedLabel;
+        private System.Windows.Forms.TrackBar volumeSlider;
+        private System.Windows.Forms.Label volumeLabel;
     }
 }
 
