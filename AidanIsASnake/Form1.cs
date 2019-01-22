@@ -21,49 +21,99 @@ namespace AidanIsASnake
         public Form1()
         {
             InitializeComponent();
-            new Settings(); //Adding the settings for the game
+            //Adding settings and data for the game
+            new Settings(); 
+            new Data();
 
             //Game boundaries
             maxXpos = gameBackground.Size.Width / Settings.Width;
             maxYpos = gameBackground.Size.Height / Settings.Height;
 
+            difficultySlider.Enabled = false;
+            difficultySlider.Value = 1;
+            difficultySlider.Maximum = 3;
+
             gameTimer.Interval = 1000 / Settings.Speed; //Interval depends on the speed set in the settings
             gameTimer.Tick += screenUpdate; //Updating the screen on every tick
             gameTimer.Start();
 
-            startGame();
+            spawn();
         }
 
         //Ran on every single tick
         private void screenUpdate(object sender, EventArgs e)
         {
+            this.ActiveControl = null;  //Makes it so the components don't take focus thus disabling key reading
+            difficultyLabel.Text = "Diffculty: " + Settings.difficulty.ToString(); //Displays the current difficulty
+            gameScoreNumLabel.Text = Data.Score.ToString(); //Shows the score on the screen
+
             //Game over screen
-            if (Settings.GameOver == true)
+            if (Data.GameState == GameStates.Spawning)
             {
-                //Restart the game when the player presses enter
+                //Start the game when the player presses enter
                 if (Input.keyPress(Keys.Enter))
                     startGame();
+
+                gameEndMsgLabel.Visible = false; //Hide the game over screen
+                gamePausedLabel.Visible = false;
+
+                gameScoreNumLabel.Text = Data.Score.ToString(); //Shows the score on the screen
+
+                gameSpawningText.Visible = true;
+                gameSpawningText.Text = "Press ENTER to start";
+
+                difficultySlider.Enabled = true;
+            }
+            else if (Data.GameState == GameStates.Paused)
+            {
+                difficultySlider.Enabled = false;
+                gamePausedLabel.Visible = true;
+                gamePausedLabel.Text = "Game is paused\nPress ENTER to resume";
+
+                if (Input.keyPress(Keys.Enter))
+                    Data.GameState = GameStates.Playing;
+            }
+            else if (Data.GameState == GameStates.Dead)
+            {
+                gameEndMsgLabel.Text = "Game over\n" + "Your score is: " + Data.Score + "\nPress ENTER to restart\nPress ESC to spawn";
+                gameEndMsgLabel.Visible = true;
+
+                if (Input.keyPress(Keys.Enter))
+                    startGame();
+
+                if (Input.keyPress(Keys.Escape))
+                    spawn();
+
+                difficultySlider.Enabled = true;
             }
             else
             {
                 //Game not over(yet)
-                //Direction is changed based on the button that's pressed
+                gameEndMsgLabel.Visible = false; //Hide the game over screen
+                gameSpawningText.Visible = false;//Hides the spawning screen
+                gamePausedLabel.Visible = false; //Hides the pause screen
 
-                if (Input.keyPress(Keys.D) && Settings.direction != Directions.Left)        //Pressing D makes it go right
+                difficultySlider.Enabled = false;
+
+                if (Input.keyPress(Keys.Space))
+                    pause();
+
+                //Direction is changed based on the button that's pressed
+                if (Input.keyPress(Keys.D) && Data.direction != Directions.Left)        //Pressing D makes it go right
                 {
-                    Settings.direction = Directions.Right;
+                    Data.direction = Directions.Right;
                 }
-                else if (Input.keyPress(Keys.A) && Settings.direction != Directions.Right)  //Pressing A makes it go left
+                else if (Input.keyPress(Keys.A) && Data.direction != Directions.Right)  //Pressing A makes it go left
                 {
-                    Settings.direction = Directions.Left;
+                    Data.direction = Directions.Left;
                 }
-                else if (Input.keyPress(Keys.W) && Settings.direction != Directions.Down)   //Pressing W makes it go up
+                else if (Input.keyPress(Keys.W) && Data.direction != Directions.Down)   //Pressing W makes it go up
                 {
-                    Settings.direction = Directions.Up;
+                    Data.direction = Directions.Up;
                 }
-                else if (Input.keyPress(Keys.S) && Settings.direction != Directions.Up)     //Pressing S makes it go down
+                else if (Input.keyPress(Keys.S) && Data.direction != Directions.Up)     //Pressing S makes it go down
                 {
-                    Settings.direction = Directions.Down;
+                    Data.direction = Directions.Down;
                 }
 
                 movePlayer();   //Self explanatory
@@ -80,7 +130,7 @@ namespace AidanIsASnake
                 if (i == 0)
                 {
                     //Move the body depending on the direction of head
-                    switch (Settings.direction)
+                    switch (Data.direction)
                     {
                         case Directions.Right:
                             Snake[i].X++;
@@ -102,14 +152,14 @@ namespace AidanIsASnake
                         Snake[i].X > maxXpos ||
                         Snake[i].Y > maxYpos)
                     {
-                        Settings.GameOver = true; //ded †
+                        Data.GameState = GameStates.Dead; //ded †
                     }
 
                     //Collision detection for the body
                     for (int j = 1; j < Snake.Count; j++)
                     {
                         if (Snake[i].X == Snake[j].X && Snake[i].Y == Snake[j].Y)
-                            Settings.GameOver = true; //ded †
+                            Data.GameState = GameStates.Dead; //ded †
                     }
                      
                     if (Snake[0].X == food.X && Snake[0].Y == food.Y)
@@ -144,21 +194,31 @@ namespace AidanIsASnake
             };
 
             Snake.Add(newBodyPart); //Adds the created block to the list
-            Settings.Score += Settings.Points; //Increases the score
-            gameScoreNumLabel.Text = Settings.Score.ToString(); //Display the score on the screen
+            Data.Score += Settings.Points; //Increases the score
+            gameScoreNumLabel.Text = Data.Score.ToString(); //Display the score on the screen
             generateFood(); //Makes a new food block since the previous one was eaten
         }
 
         private void startGame()
         {
-            gameEndMsgLabel.Visible = false; //Hide the game over screen
-            new Settings(); //Reset the settings
+            new Data(); //Reset the data
+            Data.GameState = GameStates.Playing;
             Snake.Clear(); //Clears the list of snake parts
             Block head = new Block { X = 10, Y = 5 }; //Spawns the head of the snake
             Snake.Add(head); //Adds the head to the list
-            gameScoreNumLabel.Text = Settings.Score.ToString(); //Shows the score on the screen
 
             generateFood(); //Generates the starting food
+        }
+
+        private void spawn()
+        {
+            Data.GameState = GameStates.Spawning;
+            new Data(); //Reset the data
+        }
+
+        private void pause()
+        {
+            Data.GameState = GameStates.Paused;
         }
 
         private void keyDown(object sender, KeyEventArgs e)
@@ -175,7 +235,7 @@ namespace AidanIsASnake
         {
             Graphics screen = e.Graphics;
 
-            if (!Settings.GameOver) //If game is not over
+            if (!(Data.GameState == GameStates.Dead)) //If game is not over
             {
                 Brush snakeColour = Brushes.Black; //Makes the snake a TriHard
 
@@ -197,13 +257,57 @@ namespace AidanIsASnake
                                             Settings.Width,
                                             Settings.Height));
                 }
-            }
-            else  //ded †
-            {
-                gameEndMsgLabel.Text = "Game over\n" + "Your score is: " + Settings.Score + "\nPress ENTER to restart\n";
-                gameEndMsgLabel.Visible = true;
-            }
-       
+            }      
         }
+
+        private void difficultySlider_Scroll(object sender, EventArgs e)
+        {
+            switch (difficultySlider.Value)
+            {
+                case 0:
+                    Settings.difficulty = Difficulties.Pepega;
+                    break;
+                case 1:
+                    Settings.difficulty = Difficulties.Normal;
+                    break;
+                case 2:
+                    Settings.difficulty = Difficulties.Hard;
+                    break;
+                case 3:
+                    Settings.difficulty = Difficulties.DarkSouls;
+                    break;
+            }
+
+            changeDifficulty();
+        }
+
+        private void changeDifficulty()
+        {
+            switch (Settings.difficulty)
+            {
+                case Difficulties.Pepega:
+                    Settings.Points = 20;
+                    Settings.Speed = 10;
+                    break;
+
+                case Difficulties.Normal:
+                    Settings.Points = 50;
+                    Settings.Speed = 20;
+                    break;
+
+                case Difficulties.Hard:
+                    Settings.Points = 100;
+                    Settings.Speed = 35;
+                    break;
+
+                case Difficulties.DarkSouls:
+                    Settings.Points = 200;
+                    Settings.Speed = 50;
+                    break;                  
+            }
+
+            gameTimer.Interval = 1000 / Settings.Speed; //Interval depends on the speed set in the settings
+        }   
+
     }
 }
