@@ -40,8 +40,8 @@ namespace AidanIsASnake
             volumeSlider.Value = calculatedVolume / (ushort.MaxValue / 100);      //Volume on a scale of 1 to 100
 
             //Game boundaries
-            maxXpos = (gameBackground.Size.Width - Settings.Width/2) / Settings.Width;      //Has to be set this way
-            maxYpos = (gameBackground.Size.Height - Settings.Height/2) / Settings.Height;   //to prevent a bug that allows snake to go beyond bottom border
+            maxXpos = (gameBackground.Size.Width - Settings.Width/2) / Settings.Width;      
+            maxYpos = (gameBackground.Size.Height - Settings.Height/2) / Settings.Height;   //Has to be set this way to prevent a bug that allows snake to go beyond bottom border
 
             difficultySlider.Enabled = false;
             difficultySlider.Value = 1;
