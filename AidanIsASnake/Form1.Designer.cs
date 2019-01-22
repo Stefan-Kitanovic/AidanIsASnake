@@ -155,7 +155,7 @@
             this.Controls.Add(this.gameScoreLabel);
             this.Controls.Add(this.gameBackground);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "Snek";
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.keyDown);
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.keyUp);
             ((System.ComponentModel.ISupportInitialize)(this.gameBackground)).EndInit();
