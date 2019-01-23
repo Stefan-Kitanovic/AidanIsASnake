@@ -61,6 +61,16 @@ namespace AidanIsASnake.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap background {
+            get {
+                object obj = ResourceManager.GetObject("background", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
         /// </summary>
         internal static System.IO.UnmanagedMemoryStream eat {
@@ -72,9 +82,19 @@ namespace AidanIsASnake.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
         /// </summary>
-        internal static System.IO.UnmanagedMemoryStream gas_gas_gas {
+        internal static System.IO.UnmanagedMemoryStream gameMusic {
             get {
-                return ResourceManager.GetStream("gas_gas_gas", resourceCulture);
+                return ResourceManager.GetStream("gameMusic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap snakeBitmap {
+            get {
+                object obj = ResourceManager.GetObject("snakeBitmap", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
         

@@ -1,4 +1,5 @@
-﻿using System;
+﻿//Made by Stefan Kitanovic
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -18,6 +19,9 @@ namespace AidanIsASnake
         private Block food = new Block(); //
         private int maxXpos;
         private int maxYpos;
+        private Bitmap bitmap;
+        private Dictionary<GraphicsBlockTypes, Image> graphicsDictionary = new Dictionary<GraphicsBlockTypes, Image>();
+        private List<Bitmap> tempGraphicsList = new List<Bitmap>();
 
         [DllImport("winmm.dll")]
         public static extern int waveOutGetVolume(IntPtr hwo, out uint dwVolume);
@@ -32,7 +36,6 @@ namespace AidanIsASnake
             new Settings(); 
             new Data();
 
-
             //Volume slider
             uint currentVolume = 0;                                             //Set the volume to 0 by default
             waveOutGetVolume(IntPtr.Zero, out currentVolume);                   //Assigns the volume
@@ -42,6 +45,10 @@ namespace AidanIsASnake
             //Game boundaries
             maxXpos = (gameBackground.Size.Width - Settings.Width/2) / Settings.Width;      
             maxYpos = (gameBackground.Size.Height - Settings.Height/2) / Settings.Height;   //Has to be set this way to prevent a bug that allows snake to go beyond bottom border
+
+            //Loading the bitmap
+            loadBitmap();
+            loadGraphics();
 
             difficultySlider.Enabled = false;
             difficultySlider.Value = 1;
@@ -227,15 +234,29 @@ namespace AidanIsASnake
 
         private void startGame()
         {
-            new Data(); //Reset the data
+            new Data();                                 //Reset the data
             Data.GameState = GameStates.Playing;
-            Snake.Clear(); //Clears the list of snake parts
-            Block head = new Block { X = 10, Y = 5 }; //Spawns the head of the snake
-            Snake.Add(head); //Adds the head to the list
+            Snake.Clear();                              //Clears the list of snake parts
+            Block head = new Block { X = 10, Y = 5 };   //Spawns the head of the snake
+            Snake.Add(head);                            //Adds the head to the list
+            Block newBodyPart = new Block               //Starts with 3 blocks
+            {
+                X = Snake[Snake.Count - 1].X,
+                Y = Snake[Snake.Count - 1].Y
+            };
+            Snake.Add(newBodyPart);
+
+            Block newBodyPart2 = new Block               //Starts with 3 blocks
+            {
+                X = Snake[Snake.Count - 1].X,
+                Y = Snake[Snake.Count - 1].Y + Settings.Height,
+            };
+
+            Snake.Add(newBodyPart2);
 
             try
             {
-                SoundPlayer gameSong = new SoundPlayer(AidanIsASnake.Properties.Resources.gas_gas_gas);
+                SoundPlayer gameSong = new SoundPlayer(Properties.Resources.gameMusic);
                 gameSong.PlayLooping();
             }
             catch (Exception ex)
@@ -248,8 +269,8 @@ namespace AidanIsASnake
 
         private void spawn()
         {
-            Data.GameState = GameStates.Spawning;
             new Data(); //Reset the data
+            //State is set to spawning by default in the constructor so no reason to set it here
         }
 
         private void pause()
@@ -263,7 +284,7 @@ namespace AidanIsASnake
 
             try
             {               
-                SoundPlayer deathSound = new SoundPlayer(AidanIsASnake.Properties.Resources.you_died);
+                SoundPlayer deathSound = new SoundPlayer(Properties.Resources.you_died);
                 deathSound.Play();
             }
             catch (Exception ex)
@@ -291,23 +312,135 @@ namespace AidanIsASnake
             {
                 Brush snakeColour = Brushes.Black; //Makes the snake a TriHard
 
-                for (int i = 0; i < Snake.Count; i++)
+                for (int i = 0; i < Snake.Count ; i++)
                 {
-                    //Draws the snake
-                    screen.FillEllipse(snakeColour,
-                                        new Rectangle(
-                                            Snake[i].X * Settings.Width,
-                                            Snake[i].Y * Settings.Height,
-                                            Settings.Width,
-                                            Settings.Height));
-
+                    if (i == 0)
+                    {
+                        switch (Data.direction)
+                        {
+                            case Directions.Down: screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.headDown], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height); break;
+                            case Directions.Up: screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.headUp], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height); break;
+                            case Directions.Left: screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.headLeft], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height); break;
+                            case Directions.Right: screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.headRight], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height); break;
+                        }
+                    }
+                    //Ignore these for now, will be used for the graphics rework
+                    ////else if (i == 1)    //Only head and the 2nd block matter, the rest will follow the block in front of them
+                    ////{
+                    ////    switch (Data.direction)
+                    ////    {
+                    ////        case Directions.Down:
+                    ////            if (Snake[i].X == Snake[i + 1].X)   //If the head is down and 3rd is block has the same X coordinates, there is no corner
+                    ////            {
+                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.bodyUpDown], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
+                    ////            }
+                    ////            else if (Snake[i].X > Snake[i + 1].X) 
+                    ////            {
+                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.cornerDownRight], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
+                    ////            }
+                    ////            else
+                    ////            {
+                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.cornerDownLeft], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
+                    ////            }
+                    ////            break;
+                    ////        case Directions.Up:
+                    ////            if (Snake[i].X == Snake[i + 1].X)   //If the head is up and 3rd is block has the same X coordinates, there is no corner
+                    ////            {
+                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.bodyUpDown], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
+                    ////            }
+                    ////            else if (Snake[i].X > Snake[i + 1].X)
+                    ////            {
+                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.cornerUpRight], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
+                    ////            }
+                    ////            else
+                    ////            {
+                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.cornerUpLeft], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
+                    ////            }
+                    ////            break;
+                    ////        case Directions.Left:
+                    ////            if (Snake[i].Y == Snake[i + 1].Y)   //If the head is left and 3rd is block has the same Y coordinates, there is no corner
+                    ////            {
+                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.bodyLeftRight], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
+                    ////            }
+                    ////            else if (Snake[i].Y >Snake[i + 1].Y)
+                    ////            {
+                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.cornerDownLeft], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
+                    ////            }
+                    ////            else
+                    ////            {
+                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.cornerUpLeft], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
+                    ////            }
+                    ////            break;
+                    ////        case Directions.Right:
+                    ////            if (Snake[i].Y == Snake[i + 1].Y)   //If the head is right and 3rd is block has the same Y coordinates, there is no corner
+                    ////            {
+                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.bodyLeftRight], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
+                    ////            }
+                    ////            else if (Snake[i].Y > Snake[i + 1].Y)
+                    ////            {
+                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.cornerDownRight], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
+                    ////            }
+                    ////            else
+                    ////            {
+                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.cornerUpRight], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
+                    ////            }
+                    ////            break;
+                    ////    }
+                    ////}
+                    else if (i == Snake.Count - 1)  //Draws the tail
+                    {
+                        if (Snake[i].Y == Snake[i - 1].Y)   //Both on the same Y coordinates => check X
+                        {
+                            if (Snake[i].X > Snake[i-1].X)
+                            {
+                                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.tailLeft], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
+                            }
+                            else
+                            {
+                                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.tailRight], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
+                            }
+                        }
+                        else    //Both on the same X coordinates => check Y
+                        {
+                            if (Snake[i].Y > Snake[i-1].Y)
+                            {
+                                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.tailUp], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
+                            }
+                            else
+                            {
+                                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.tailDown], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
+                            }
+                        }                      
+                    }
+                    else    //Draws the rest of the body
+                    {
+                        if (Snake[i].X == Snake[i + 1].X && Snake[i].X == Snake[i - 1].X)
+                        {
+                            screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.bodyUpDown], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
+                        }
+                        else if (Snake[i].Y == Snake[i + 1].Y && Snake[i].Y == Snake[i - 1].Y)
+                        {
+                            screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.bodyLeftRight], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
+                        }
+                        else if ((Snake[i].Y > Snake[i + 1].Y && Snake[i].X < Snake[i - 1].X) || (Snake[i].Y > Snake[i - 1].Y && Snake[i].X < Snake[i + 1].X))
+                        {
+                            screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.cornerUpRight], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
+                        }
+                        else if ((Snake[i].Y < Snake[i + 1].Y && Snake[i].X < Snake[i - 1].X) || (Snake[i].Y < Snake[i - 1].Y && Snake[i].X < Snake[i + 1].X))
+                        {
+                            screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.cornerDownRight], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
+                        }
+                        else if ((Snake[i].Y < Snake[i + 1].Y && Snake[i].X > Snake[i - 1].X) || (Snake[i].Y < Snake[i - 1].Y && Snake[i].X > Snake[i + 1].X))
+                        {
+                            screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.cornerDownLeft], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
+                        }
+                        else if ((Snake[i].Y > Snake[i + 1].Y && Snake[i].X > Snake[i - 1].X) || (Snake[i].Y > Snake[i - 1].Y && Snake[i].X > Snake[i + 1].X))
+                        {
+                            screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.cornerUpLeft], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
+                        }
+                    }
                     //Draws food
-                    screen.FillEllipse(Brushes.Green,
-                                        new Rectangle(
-                                            food.X * Settings.Width,
-                                            food.Y * Settings.Height,
-                                            Settings.Width,
-                                            Settings.Height));
+                    screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.food], food.X * Settings.Width, food.Y * Settings.Height);
                 }
             }      
         }
@@ -368,9 +501,46 @@ namespace AidanIsASnake
             waveOutSetVolume(IntPtr.Zero, newVolumeAllChannels);                                        //Sets the final volume
         }
 
-        private void playSound(string audioPath)
+        private void loadBitmap()
         {
-            
+            try
+            {
+                bitmap = new Bitmap(Properties.Resources.snakeBitmap);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Error while opening the bitmap");
+            }
+        }
+
+        private void loadGraphics()
+        {
+            for (int bigY = 0; bigY < 4; bigY++)                //bigX and bigY are coordinates of individual sprites since the bitmap is organised like a matrix
+            {
+                for (int bigX = 0; bigX < 4; bigX++)
+                {
+                    Bitmap imageTemp = new Bitmap(16, 16);   
+                    //Going through each sprite pixel by pixel and copying them into temporary bitmap which is added in the list
+                    for (int x = bigX*16; x < (bigX+1)*16; x++)
+                    {
+                        for (int y = bigY*16; y < (bigY+1)*16; y++)
+                        {
+                            imageTemp.SetPixel(x%16, y%16, bitmap.GetPixel(x, y));
+                        }
+                    }
+                    tempGraphicsList.Add(imageTemp);    //Temporary list that holds all sprites in correct order
+                }
+            }
+
+            //Moving all the sprites to a dictionary, keys are enums for the sprites' bodyparts
+            int index = 0;
+            foreach(GraphicsBlockTypes g in Block.blockTypesArray)
+            {
+                graphicsDictionary.Add(g, tempGraphicsList[index]);
+                index++;
+            }
+
+            tempGraphicsList.Clear(); //No longer needed
         }
     }
 }

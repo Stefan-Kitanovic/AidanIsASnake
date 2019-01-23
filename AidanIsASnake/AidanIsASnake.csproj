@@ -93,5 +93,14 @@
   <ItemGroup>
     <None Include="bin\Debug\Sounds\gas-gas-gas.wav" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="bin\Debug\Pictures\Snake.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="bin\Debug\Sounds\gameMusic.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\background.bmp" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -49,9 +49,10 @@
             // gameBackground
             // 
             this.gameBackground.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.gameBackground.BackgroundImage = global::AidanIsASnake.Properties.Resources.background;
             this.gameBackground.Location = new System.Drawing.Point(0, 0);
             this.gameBackground.Name = "gameBackground";
-            this.gameBackground.Size = new System.Drawing.Size(540, 560);
+            this.gameBackground.Size = new System.Drawing.Size(544, 560);
             this.gameBackground.TabIndex = 0;
             this.gameBackground.TabStop = false;
             this.gameBackground.Paint += new System.Windows.Forms.PaintEventHandler(this.graphicsUpdate);
