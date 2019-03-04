@@ -102,5 +102,11 @@
   <ItemGroup>
     <None Include="Resources\background.bmp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\snakeBitmap.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="bin\Debug\Pictures\snakeBitmap.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

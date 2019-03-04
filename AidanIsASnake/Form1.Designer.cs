@@ -49,10 +49,9 @@
             // gameBackground
             // 
             this.gameBackground.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.gameBackground.BackgroundImage = global::AidanIsASnake.Properties.Resources.background;
             this.gameBackground.Location = new System.Drawing.Point(0, 0);
             this.gameBackground.Name = "gameBackground";
-            this.gameBackground.Size = new System.Drawing.Size(544, 560);
+            this.gameBackground.Size = new System.Drawing.Size(640, 640);
             this.gameBackground.TabIndex = 0;
             this.gameBackground.TabStop = false;
             this.gameBackground.Paint += new System.Windows.Forms.PaintEventHandler(this.graphicsUpdate);
@@ -61,7 +60,7 @@
             // 
             this.gameScoreLabel.AutoSize = true;
             this.gameScoreLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.gameScoreLabel.Location = new System.Drawing.Point(605, 70);
+            this.gameScoreLabel.Location = new System.Drawing.Point(675, 39);
             this.gameScoreLabel.Name = "gameScoreLabel";
             this.gameScoreLabel.Size = new System.Drawing.Size(71, 24);
             this.gameScoreLabel.TabIndex = 1;
@@ -71,7 +70,7 @@
             // 
             this.gameScoreNumLabel.AutoSize = true;
             this.gameScoreNumLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.gameScoreNumLabel.Location = new System.Drawing.Point(675, 72);
+            this.gameScoreNumLabel.Location = new System.Drawing.Point(743, 41);
             this.gameScoreNumLabel.Name = "gameScoreNumLabel";
             this.gameScoreNumLabel.Size = new System.Drawing.Size(32, 24);
             this.gameScoreNumLabel.TabIndex = 2;
@@ -92,7 +91,7 @@
             // difficultySlider
             // 
             this.difficultySlider.LargeChange = 0;
-            this.difficultySlider.Location = new System.Drawing.Point(591, 149);
+            this.difficultySlider.Location = new System.Drawing.Point(679, 89);
             this.difficultySlider.Maximum = 4;
             this.difficultySlider.Name = "difficultySlider";
             this.difficultySlider.Size = new System.Drawing.Size(262, 45);
@@ -104,7 +103,7 @@
             // 
             this.difficultyLabel.AutoSize = true;
             this.difficultyLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.difficultyLabel.Location = new System.Drawing.Point(586, 197);
+            this.difficultyLabel.Location = new System.Drawing.Point(674, 137);
             this.difficultyLabel.Name = "difficultyLabel";
             this.difficultyLabel.Size = new System.Drawing.Size(119, 26);
             this.difficultyLabel.TabIndex = 4;
@@ -126,7 +125,7 @@
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(25, 585);
+            this.label1.Location = new System.Drawing.Point(25, 649);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(390, 26);
             this.label1.TabIndex = 6;
@@ -146,7 +145,7 @@
             // 
             // volumeSlider
             // 
-            this.volumeSlider.Location = new System.Drawing.Point(591, 315);
+            this.volumeSlider.Location = new System.Drawing.Point(679, 205);
             this.volumeSlider.Maximum = 100;
             this.volumeSlider.Name = "volumeSlider";
             this.volumeSlider.Size = new System.Drawing.Size(262, 45);
@@ -159,7 +158,7 @@
             // 
             this.volumeLabel.AutoSize = true;
             this.volumeLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.volumeLabel.Location = new System.Drawing.Point(588, 363);
+            this.volumeLabel.Location = new System.Drawing.Point(674, 253);
             this.volumeLabel.Name = "volumeLabel";
             this.volumeLabel.Size = new System.Drawing.Size(107, 26);
             this.volumeLabel.TabIndex = 9;
@@ -169,7 +168,8 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(909, 631);
+            this.BackColor = System.Drawing.SystemColors.Control;
+            this.ClientSize = new System.Drawing.Size(977, 684);
             this.Controls.Add(this.volumeLabel);
             this.Controls.Add(this.volumeSlider);
             this.Controls.Add(this.gamePausedLabel);
@@ -183,6 +183,7 @@
             this.Controls.Add(this.gameBackground);
             this.Name = "Form1";
             this.Text = "Snek";
+            this.Load += new System.EventHandler(this.Form1_Load);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.keyDown);
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.keyUp);
             ((System.ComponentModel.ISupportInitialize)(this.gameBackground)).EndInit();

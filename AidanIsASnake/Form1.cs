@@ -10,13 +10,14 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.IO;
 
 namespace AidanIsASnake
 {
     public partial class Form1 : Form
     {
         private List<Block> Snake = new List<Block>(); //Snake consists of list array of blocks duh
-        private Block food = new Block(); //
+        private Block food = new Block(); 
         private int maxXpos;
         private int maxYpos;
         private Bitmap bitmap;
@@ -37,12 +38,13 @@ namespace AidanIsASnake
             new Data();
 
             //Volume slider
-            uint currentVolume = 0;                                             //Set the volume to 0 by default
-            waveOutGetVolume(IntPtr.Zero, out currentVolume);                   //Assigns the volume
-            ushort calculatedVolume = (ushort)(currentVolume & 0x0000ffff);     //Calculates the volume
+            uint currentVolume = 0;                                               //Set the volume to 0 by default
+            waveOutGetVolume(IntPtr.Zero, out currentVolume);                     //Assigns the volume
+            ushort calculatedVolume = (ushort)(currentVolume & 0x0000ffff);       //Calculates the volume
             volumeSlider.Value = calculatedVolume / (ushort.MaxValue / 100);      //Volume on a scale of 1 to 100
 
             //Game boundaries
+            gameBackground.Size = new System.Drawing.Size(Settings.Width * 20, Settings.Height * 20);
             maxXpos = (gameBackground.Size.Width - Settings.Width/2) / Settings.Width;      
             maxYpos = (gameBackground.Size.Height - Settings.Height/2) / Settings.Height;   //Has to be set this way to prevent a bug that allows snake to go beyond bottom border
 
@@ -201,9 +203,24 @@ namespace AidanIsASnake
         private void generateFood()
         {
             Random rnd = new Random();
+            bool generateAgain = false;
+            int xPos, yPos;
+            
+            do
+            {
+                generateAgain = false;
+                xPos = rnd.Next(0, maxXpos);
+                yPos = rnd.Next(0, maxYpos);
+                foreach (Block s in Snake)
+                {
+                    if (xPos == s.X && yPos == s.Y)
+                        generateAgain = true;
+
+                }
+            } while (generateAgain);
 
             //Generate a food block on random location on screen
-            food = new Block { X = rnd.Next(0, maxXpos), Y = rnd.Next(0, maxYpos) };
+            food = new Block { X = xPos, Y = yPos };
         }
 
         private void eat()
@@ -239,6 +256,8 @@ namespace AidanIsASnake
             Snake.Clear();                              //Clears the list of snake parts
             Block head = new Block { X = 10, Y = 5 };   //Spawns the head of the snake
             Snake.Add(head);                            //Adds the head to the list
+
+
             Block newBodyPart = new Block               //Starts with 3 blocks
             {
                 X = Snake[Snake.Count - 1].X,
@@ -252,19 +271,21 @@ namespace AidanIsASnake
                 Y = Snake[Snake.Count - 1].Y + Settings.Height,
             };
 
-            Snake.Add(newBodyPart2);
+                Snake.Add(newBodyPart2);
 
             try
             {
-                SoundPlayer gameSong = new SoundPlayer(Properties.Resources.gameMusic);
+                SoundPlayer gameSong = new SoundPlayer(@"Sounds\gameMusic.wav");
                 gameSong.PlayLooping();
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Error loading game song");
+                throw new FileNotFoundException();
             }
 
             generateFood(); //Generates the starting food
+
         }
 
         private void spawn()
@@ -290,6 +311,7 @@ namespace AidanIsASnake
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Error loading death sound");
+                
             }
             
         }
@@ -323,70 +345,7 @@ namespace AidanIsASnake
                             case Directions.Left: screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.headLeft], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height); break;
                             case Directions.Right: screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.headRight], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height); break;
                         }
-                    }
-                    //Ignore these for now, will be used for the graphics rework
-                    ////else if (i == 1)    //Only head and the 2nd block matter, the rest will follow the block in front of them
-                    ////{
-                    ////    switch (Data.direction)
-                    ////    {
-                    ////        case Directions.Down:
-                    ////            if (Snake[i].X == Snake[i + 1].X)   //If the head is down and 3rd is block has the same X coordinates, there is no corner
-                    ////            {
-                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.bodyUpDown], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
-                    ////            }
-                    ////            else if (Snake[i].X > Snake[i + 1].X) 
-                    ////            {
-                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.cornerDownRight], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
-                    ////            }
-                    ////            else
-                    ////            {
-                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.cornerDownLeft], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
-                    ////            }
-                    ////            break;
-                    ////        case Directions.Up:
-                    ////            if (Snake[i].X == Snake[i + 1].X)   //If the head is up and 3rd is block has the same X coordinates, there is no corner
-                    ////            {
-                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.bodyUpDown], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
-                    ////            }
-                    ////            else if (Snake[i].X > Snake[i + 1].X)
-                    ////            {
-                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.cornerUpRight], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
-                    ////            }
-                    ////            else
-                    ////            {
-                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.cornerUpLeft], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
-                    ////            }
-                    ////            break;
-                    ////        case Directions.Left:
-                    ////            if (Snake[i].Y == Snake[i + 1].Y)   //If the head is left and 3rd is block has the same Y coordinates, there is no corner
-                    ////            {
-                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.bodyLeftRight], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
-                    ////            }
-                    ////            else if (Snake[i].Y >Snake[i + 1].Y)
-                    ////            {
-                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.cornerDownLeft], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
-                    ////            }
-                    ////            else
-                    ////            {
-                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.cornerUpLeft], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
-                    ////            }
-                    ////            break;
-                    ////        case Directions.Right:
-                    ////            if (Snake[i].Y == Snake[i + 1].Y)   //If the head is right and 3rd is block has the same Y coordinates, there is no corner
-                    ////            {
-                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.bodyLeftRight], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
-                    ////            }
-                    ////            else if (Snake[i].Y > Snake[i + 1].Y)
-                    ////            {
-                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.cornerDownRight], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
-                    ////            }
-                    ////            else
-                    ////            {
-                    ////                screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.cornerUpRight], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
-                    ////            }
-                    ////            break;
-                    ////    }
-                    ////}
+                    }              
                     else if (i == Snake.Count - 1)  //Draws the tail
                     {
                         if (Snake[i].Y == Snake[i - 1].Y)   //Both on the same Y coordinates => check X
@@ -439,6 +398,7 @@ namespace AidanIsASnake
                             screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.cornerUpLeft], Snake[i].X * Settings.Width, Snake[i].Y * Settings.Height);
                         }
                     }
+
                     //Draws food
                     screen.DrawImage(graphicsDictionary[GraphicsBlockTypes.food], food.X * Settings.Width, food.Y * Settings.Height);
                 }
@@ -505,7 +465,7 @@ namespace AidanIsASnake
         {
             try
             {
-                bitmap = new Bitmap(Properties.Resources.snakeBitmap);
+                bitmap = new Bitmap(@"Pictures/snakeBitmap.png");
             }
             catch (Exception)
             {
@@ -521,13 +481,14 @@ namespace AidanIsASnake
                 {
                     Bitmap imageTemp = new Bitmap(16, 16);   
                     //Going through each sprite pixel by pixel and copying them into temporary bitmap which is added in the list
-                    for (int x = bigX*16; x < (bigX+1)*16; x++)
+                    for (int x = bigX * 16; x < (bigX+1) * 16; x++)
                     {
-                        for (int y = bigY*16; y < (bigY+1)*16; y++)
+                        for (int y = bigY * 16; y < (bigY+1) * 16; y++)
                         {
-                            imageTemp.SetPixel(x%16, y%16, bitmap.GetPixel(x, y));
+                            imageTemp.SetPixel(x % 16, y % 16, bitmap.GetPixel(x, y));                          
                         }
                     }
+                    //imageTemp.SetResolution((float)Settings.Width, (float)Settings.Height);
                     tempGraphicsList.Add(imageTemp);    //Temporary list that holds all sprites in correct order
                 }
             }
@@ -540,7 +501,25 @@ namespace AidanIsASnake
                 index++;
             }
 
-            tempGraphicsList.Clear(); //No longer needed
+            //Extracting the background part from the bitmap and drawing it on the game background
+            Bitmap backgroundTemp = (Bitmap)graphicsDictionary[GraphicsBlockTypes.background];
+            //backgroundTemp.SetResolution((float)Settings.Width, (float)Settings.Height);
+            Bitmap backgroundLarge = new Bitmap(gameBackground.Width, gameBackground.Height);
+
+            for (int y = 0; y < gameBackground.Height; y++)
+            {
+                for (int x = 0; x < gameBackground.Width; x++)
+                {
+                    backgroundLarge.SetPixel(x, y, backgroundTemp.GetPixel(x % 16, y % 16));
+                }
+            }
+
+            gameBackground.Image = new System.Drawing.Bitmap(backgroundLarge);
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

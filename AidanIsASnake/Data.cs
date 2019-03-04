@@ -25,7 +25,7 @@ namespace AidanIsASnake
     class Data
     {
         public static int Score { get; set; }               //Total score
-        public static Directions direction { get; set; }
+        public static Directions direction { get; set; }    //Current direction
         public static GameStates GameState { get; set; }
 
         public Data()
